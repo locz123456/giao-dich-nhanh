@@ -6,7 +6,6 @@ exports.getAllProducts = async (req, res) => {
         const products = await Product.find();
         res.json(products);
     } catch (error) {
-        console.log(error)
         res.status(500).json({ message: MESSAGE.SERVER_ERROR, error });
     }
 };
@@ -14,7 +13,6 @@ exports.getAllProducts = async (req, res) => {
 exports.createProduct = async (req, res) => {
     try {
         const { name, price, type, image, description } = req.body;
-        console.log(req.body)
         const newProduct = new Product({ name, price, type, image, description });
         await newProduct.save();
         res.status(201).json({ message: MESSAGE.CREATE_SUCCESS, data: newProduct });

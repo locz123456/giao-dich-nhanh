@@ -3,12 +3,15 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const { CONNECT_DB } = require('../src/config/database')
 const { corsOptions } = require('./config/cors')
+const cookieParser = require("cookie-parser");
 dotenv.config();
 
 // Kết nối MongoDB
 CONNECT_DB()
 
 const app = express()
+
+app.use(cookieParser());
 app.use(express.json())
 app.use(cors(corsOptions))
 
