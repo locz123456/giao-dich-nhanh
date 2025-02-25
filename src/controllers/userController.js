@@ -10,8 +10,33 @@ dotenv.config();
 // Lấy danh sách tất cả người dùng
 exports.getAllUsers = async (req, res) => {
     try {
-        const users = await User.find(); // Lấy danh sách user từ DB
-        res.json(users);
+        let { page, limit } = req.query;
+        page = parseInt(page) || 1;
+        limit = parseInt(limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const users = await User.aggregate([
+            { $skip: skip },
+            { $limit: limit },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "userId",
+                    as: "products"
+                }
+            }
+        ]);
+
+        const total = await User.countDocuments();
+
+        res.json({
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+            data: users,
+        });
+
     } catch (error) {
         res.status(500).json({ message: MESSAGE.SERVER_ERROR, error });
     }
@@ -56,8 +81,8 @@ exports.login = async (req, res) => {
         }
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
         res.cookie('token', token, {
-            httpOnly: true,  // Ngăn JavaScript truy cập (chống XSS)
-            secure: false,   // Đổi thành true nếu dùng HTTPS
+            httpOnly: true,
+            secure: false,
             maxAge: 30 * 24 * 60 * 60 * 1000 // 30 ngày
         })
         res.json({ token, user: { id: user._id, username: user.username, email: user.email } });
